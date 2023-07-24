@@ -9,13 +9,14 @@ config = {
   "messagingSenderId": "19928945824",
   "appId": "1:19928945824:web:2a205188237a97b2c065c5",
   "measurementId": "G-6FEGKH25VF",
-  "databaseURL":"" };
+  "databaseURL":"https://winter-project-31d88-default-rtdb.europe-west1.firebasedatabase.app/" };
 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY'] = 'super-secret-key'
 firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
+db = firebase.database()
 
 
 
@@ -25,7 +26,7 @@ def signin():
         email = request.form['email']
         Password = request.form['password']
         try:
-            login_session['user'] =auth.create_user_with_email_and_password(email, password)
+            login_session['user'] =auth.signin_user_with_email_and_password(email, password)
             return redirect(url_for('add_tweet'))
         except: 
             print('the key user isn’t in login_session')
@@ -40,10 +41,13 @@ def signup():
         password = request.form['password']
         try:
             login_session['user'] = auth.create_user_with_email_and_password(email, password)
+            UID = login_session['user']['localId']
+            user= {"full_name": request.form['full_name'], "username": request.form['username'], "bio": request.form['bio']}
+            db.child("Users").child(UID).set(user)
             return redirect(url_for('add_tweet'))
-               # return redirect(url_for('home'))
         except: 
             print('the key user isn’t in login_session')
+            exit()
             return redirect(url_for('signin'))
 
 
@@ -52,6 +56,14 @@ def signup():
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
 def add_tweet():
+    if method=="POST":
+        try: 
+            UID = login_session['user']['localId']
+            tweets={"title": request.form['Title'], "text": request.form['Text']}
+
+
+
+
     return render_template("add_tweet.html")
 
 
