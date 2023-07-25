@@ -39,33 +39,39 @@ def signup():
     if request.method== 'POST':
         email = request.form['email']
         password = request.form['password']
+        name = request.form['full_name']
+        username = request.form['username']
+        bio = request.form['Bio']
         try:
             login_session['user'] = auth.create_user_with_email_and_password(email, password)
             UID = login_session['user']['localId']
-            user= {"full_name": request.form['full_name'], "username": request.form['username'], "bio": request.form['bio']}
+            user= {"full_name": name, "username": username, "bio": bio}
             db.child("Users").child(UID).set(user)
             return redirect(url_for('add_tweet'))
         except Exception as e: 
             print(e)
-
     return render_template("signup.html")
 
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
 def add_tweet():
     if request.method=="POST":
+        text  =request.form['Text']
+        title = request.form['Title']
         try: 
             UID = login_session['user']['localId']
-            tweets={"title": request.form['Title'], "text": request.form['Text'], "UID":UID}
-            db.child("Tweets").push('tweets')
+            tweets={"title": title, "text":text, "UID":UID}
+            db.child("Tweets").push(tweets)
         except:
             return redirect(url_for('signin'))
     return render_template("add_tweet.html")
 
 @app.route('/all_tweets')
 def all_tweets():
-    alltweets= db.child("tweets").get().val()
-    return render_template("tweets.html")
+    alltweets= db.child("Tweets").get().val()
+    print(alltweets)
+    return render_template("tweets.html", all_tweets=alltweets)
+
 
 
 
